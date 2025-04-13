@@ -1,23 +1,20 @@
-# Stage 1: Build the Angular app
-FROM node:18-alpine as builder
+FROM node:14 AS build
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+
 RUN npm install
 
 COPY . .
-RUN npm run build --configuration production
 
-# Stage 2: Serve the app with Nginx
+RUN npm run build --prod
+
 FROM nginx:alpine
 
-# Copy the built Angular files from the builder
-COPY --from=builder /app/dist/gestion-de-stock /usr/share/nginx/html
-
-# Optional: Replace the default Nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist/gestion-de-stock /usr/share/nginx/html
 
 EXPOSE 80
 
+# Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
